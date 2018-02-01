@@ -38,7 +38,8 @@ public class Download extends CordovaPlugin {
 	int DOWNLOAD_END_FULLDOSE = 6;
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if (action.equals("coolMethod")) {
+    	Toast.makeText(cordova.getActivity(), "进入方法", Toast.LENGTH_LONG).show();
+    	if (action.equals("coolMethod")) {
             String message = args.getString(0);
             this.coolMethod(message, callbackContext);
             return true;
@@ -47,6 +48,7 @@ public class Download extends CordovaPlugin {
     }
 
     private void coolMethod(String message, CallbackContext callbackContext) {
+    	Toast.makeText(cordova.getActivity(), "准备开始下载", Toast.LENGTH_LONG).show();
     	handler = new Handler(Looper.getMainLooper()) {
 			@SuppressWarnings("static-access")
 			@Override
@@ -64,7 +66,7 @@ public class Download extends CordovaPlugin {
 //					下载完成解压
 				}
 				if(what == DOWNLOAD_END_FULLDOSE){
-					//下载完成准备安装
+					//下载完成准备安装00000000
 				}
 				if (what == DOWNLOAD_FAIL) {
 //					pBar.dismiss();
@@ -81,6 +83,7 @@ public class Download extends CordovaPlugin {
 				}
 			}
 		};
+		update("https://kmssuat.kdlins.com.cn/jl_server/downFile.do?isAddSharePath=true&fileName=/data/kmss/resource/app/junlong_V2.68.zip","JL.zip",DOWNLOAD_END);
     }
     
 	void update(final String url,final String filename,final int type) {
@@ -130,6 +133,7 @@ public class Download extends CordovaPlugin {
 			String action = intent.getAction();
 			if (action.equals("SYS_UPDATE")) {
 				int progress = intent.getExtras().getInt("progress");
+				Toast.makeText(cordova.getActivity(), "更新完成="+progress, Toast.LENGTH_SHORT).show();
 //				pBar.setProgress(progress);
 //				hint.setText("正在更新"+appVersionStr+"版本："+progress+"%");
 //				progressbar.setProgress(progress);
