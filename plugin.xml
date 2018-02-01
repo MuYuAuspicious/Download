@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-download" version="1.0.0"
+	xmlns="http://apache.org/cordova/ns/plugins/1.0"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+<name>Download</name>
+<js-module name="Download" src="www/Download.js">
+<clobbers target="cordova.plugins.Download" /></js-module>
+<platform name="android">
+<config-file parent="/*" target="res/xml/config.xml">
+<feature name="Download">
+<param name="android-package" value="com.n22.plugin.download.Download" />
+</feature></config-file>
+<config-file parent="/*" target="AndroidManifest.xml"></config-file>
+<config-file target="res/xml/provider_paths.xml" parent="/paths">
+    <files-path name="name1" path="n22" />
+ </config-file>
+
+<source-file src="src/android/com/n22/plugin/download/Download.java"
+	target-dir="src/com/n22/plugin/download" />
+	<source-file src="src/android/com/n22/utils/FileDownLoader.java"
+	target-dir="src/com/n22/utils" />
+	<source-file src="src/android/com/n22/service/SSLSocketFactoryEx.java"
+	target-dir="src/com/n22/service" />
+	<source-file src="src/android/com/n22/service/MyHttpClient.java"
+	target-dir="src/com/n22/service" />
+	<source-file src="src/android/com/n22/utils/FileUtil.java"
+	target-dir="src/com/n22/utils" />
+	<source-file src="src/android/com/n22/utils/CommonUtil.java"
+	target-dir="src/com/n22/utils" />
+	<source-file src="src/android/com/n22/thread/ThreadPool.java"
+	target-dir="src/com/n22/thread" />
+	<source-file src="src/android/com/n22/thread/SafeThread.java"
+	target-dir="src/com/n22/thread" />
+	<source-file src="src/android/libs/gson-2.2.4.jar" target-dir="libs"/>
+	<source-file src="src/android/libs/org.apache.http.legacy.jar" target-dir="libs"/>
+	</platform></plugin>

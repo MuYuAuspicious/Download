@@ -1,0 +1,21 @@
+{
+  "name": "download",
+  "version": "1.0.0",
+  "description": "1",
+  "cordova": {
+    "id": "cordova-plugin-download",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "1"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "author": "1",
+  "license": "1"
+}
