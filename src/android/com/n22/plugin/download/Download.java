@@ -3,11 +3,13 @@ package com.n22.plugin.download;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaWebView;
 import org.json.JSONException;
+
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -63,6 +65,28 @@ public class Download extends CordovaPlugin {
 					currentCallbackContext.success();
 				}
 				if(what == DOWNLOAD_END_FULLDOSE){
+					
+					Runtime runtime = Runtime.getRuntime();
+		            String command1 = "chmod -R 777 " + cordova.getActivity().getFilesDir();
+		            try {
+						runtime.exec(command1);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					File f = new File(filePath);
+					if(f.exists()){
+						System.out.println("存在文件");
+					}
+					
+					try{
+					    Thread thread = Thread.currentThread();
+					    thread.sleep(1500);//暂停1.5秒后程序继续执行
+					}catch (InterruptedException e) {
+					    // TODO Auto-generated catch block
+					    e.printStackTrace();
+					}
+					
 					//下载完成准备安装00000000
 					if (Build.VERSION.SDK_INT >= 24) {
 						Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -121,6 +145,29 @@ public class Download extends CordovaPlugin {
     	}else if(message.get("type").equals("apk")){
         	update(message.get("url"),message.get("name")+"."+message.get("type"),DOWNLOAD_END_FULLDOSE);
     	}
+//    	File f = new File(filePath);
+//		if(f.exists()){
+//			System.out.println("存在文件"+f.length());
+//		}
+//    	String cmd = "chmod 777 " + filePath;
+//    	try {
+//    	Runtime.getRuntime().exec(cmd);
+//    	     } catch (IOException e) {
+//    	e.printStackTrace();
+//    	     }
+//    	
+//		
+//		try{
+//		    Thread thread = Thread.currentThread();
+//		    thread.sleep(1500);//暂停1.5秒后程序继续执行
+//		}catch (InterruptedException e) {
+//		    // TODO Auto-generated catch block
+//		    e.printStackTrace();
+//		}
+//    	Intent intent = new Intent(Intent.ACTION_VIEW);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        intent.setDataAndType(Uri.fromFile(new File("/data/data/cn.com.junlong.kdlinssit/files/n22/download/ruihua.apk")),"application/vnd.android.package-archive");
+//        cordova.getActivity().startActivity(intent);
     }
     @SuppressWarnings("unused")
    	private void unpack(Map<String,String> message) {
