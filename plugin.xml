@@ -27,6 +27,10 @@
 	target-dir="src/com/n22/utils" />
 	<source-file src="src/android/com/n22/utils/CommonUtil.java"
 	target-dir="src/com/n22/utils" />
+	<source-file src="src/android/com/n22/utils/ZipUtil.java"
+	target-dir="src/com/n22/utils" />
+	<source-file src="src/android/com/n22/utils/JsonUtil.java"
+	target-dir="src/com/n22/utils" />
 	<source-file src="src/android/com/n22/thread/ThreadPool.java"
 	target-dir="src/com/n22/thread" />
 	<source-file src="src/android/com/n22/thread/SafeThread.java"

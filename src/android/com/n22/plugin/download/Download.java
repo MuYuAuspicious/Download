@@ -2,13 +2,13 @@ package com.n22.plugin.download;
 
 import java.io.File;
 import java.io.IOException;
-
+import java.util.Map;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
-import org.json.JSONArray;
+import org.apache.cordova.CordovaWebView;
 import org.json.JSONException;
-import org.json.JSONObject;
-
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,12 +18,12 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.FileProvider;
-import android.view.View;
 import android.widget.Toast;
-
 import com.n22.thread.SafeThread;
 import com.n22.thread.ThreadPool;
 import com.n22.utils.FileDownLoader;
+import com.n22.utils.JsonUtil;
+import com.n22.utils.ZipUtil;
 
 /**
  * This class echoes a string called from JavaScript.
@@ -36,19 +36,14 @@ public class Download extends CordovaPlugin {
 	int NOUPDATE = 4;
 	int UPDATEFULLDOSE = 5;
 	int DOWNLOAD_END_FULLDOSE = 6;
-    @Override
-    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    	Toast.makeText(cordova.getActivity(), "进入方法", Toast.LENGTH_LONG).show();
-    	if (action.equals("coolMethod")) {
-            String message = args.getString(0);
-            this.coolMethod(message, callbackContext);
-            return true;
-        }
-        return false;
-    }
-
-    private void coolMethod(String message, CallbackContext callbackContext) {
-    	Toast.makeText(cordova.getActivity(), "准备开始下载", Toast.LENGTH_LONG).show();
+	ProgressDialog pBar;
+	String filePath;
+	private CallbackContext currentCallbackContext;
+	
+	@Override
+	public void initialize(final CordovaInterface cordova, CordovaWebView webView) {
+		// TODO Auto-generated method stub
+		super.initialize(cordova, webView);
     	handler = new Handler(Looper.getMainLooper()) {
 			@SuppressWarnings("static-access")
 			@Override
@@ -64,12 +59,28 @@ public class Download extends CordovaPlugin {
 				}
 				if (what == DOWNLOAD_END) {
 //					下载完成解压
+					pBar.dismiss();
+					currentCallbackContext.success();
 				}
 				if(what == DOWNLOAD_END_FULLDOSE){
 					//下载完成准备安装00000000
+					if (Build.VERSION.SDK_INT >= 24) {
+						Intent intent = new Intent(Intent.ACTION_VIEW);
+						 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+				        Uri apkUri = FileProvider.getUriForFile(cordova.getActivity(), cordova.getActivity().getPackageName()+".provider", new File(filePath));
+				        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+				        intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+				        cordova.getActivity().startActivity(intent);
+					}else{
+						Intent intent = new Intent(Intent.ACTION_VIEW);
+				        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				        intent.setDataAndType(Uri.fromFile(new File(filePath)),"application/vnd.android.package-archive");
+				        cordova.getActivity().startActivity(intent);
+					}
 				}
 				if (what == DOWNLOAD_FAIL) {
-//					pBar.dismiss();
+					pBar.dismiss();
+					currentCallbackContext.error("error");
 //					progressbar.setVisibility(View.VISIBLE);
 //					hint.setText("下载失败");
 					Toast.makeText(cordova.getActivity(), "下载失败", Toast.LENGTH_LONG).show();
@@ -83,11 +94,56 @@ public class Download extends CordovaPlugin {
 				}
 			}
 		};
-		update("https://kmssuat.kdlins.com.cn/jl_server/downFile.do?isAddSharePath=true&fileName=/data/kmss/resource/app/junlong_V2.68.zip","JL.zip",DOWNLOAD_END);
+	}
+	
+    @Override
+    public boolean execute(String action, String args, CallbackContext callbackContext) throws JSONException {
+    	Toast.makeText(cordova.getActivity(), "进入方法", Toast.LENGTH_LONG).show();
+    	currentCallbackContext = callbackContext;
+    	Map<String,String> map = (Map<String, String>) JsonUtil.jsonToObject(args, Map.class);
+    	if (action.equals("file")) {
+            this.file(map);
+            return true;
+        }else if(action.equals("unpack")){
+        	this.unpack(map);
+            return true;
+        }
+        return false;
     }
-    
+
+    @SuppressWarnings("unused")
+	private void file(Map<String,String> message) {
+    	Toast.makeText(cordova.getActivity(), "准备开始下载", Toast.LENGTH_LONG).show();
+//		update("http://140.207.91.54:8098/jl_server/downFile.do?isAddSharePath=true&fileName=/data/kmss/resource/app/junlong_V3.75.zip","JL.zip",DOWNLOAD_END);
+    	filePath = message.get("filePath");
+    	if(message.get("type").equals("zip")){
+        	update(message.get("url"),message.get("name")+"."+message.get("type"),DOWNLOAD_END);
+    	}else if(message.get("type").equals("apk")){
+        	update(message.get("url"),message.get("name")+"."+message.get("type"),DOWNLOAD_END_FULLDOSE);
+    	}
+    }
+    @SuppressWarnings("unused")
+   	private void unpack(Map<String,String> message) {
+    	message.get("targetPath");
+    	try {
+			ZipUtil.commonUnZip(message.get("unpackPath"),message.get("targetPath"),cordova.getActivity());//解压路径，目标路径
+			currentCallbackContext.success();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			currentCallbackContext.error("error");
+		}
+    }
 	void update(final String url,final String filename,final int type) {
 //		progressbar.setIndeterminate(false);
+		pBar = new ProgressDialog(cordova.getActivity());
+		pBar.setTitle("正在下载");
+		pBar.setMessage("请稍候...");
+		pBar.setIndeterminate(false);
+		pBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		pBar.setProgress(100);
+		pBar.setCancelable(false);
+		pBar.setCanceledOnTouchOutside(false);
+		pBar.show();
 		registerBoradcastReceiver("SYS_UPDATE");
 		ThreadPool.excute(new SafeThread(url) {
 			@Override
@@ -96,7 +152,6 @@ public class Download extends CordovaPlugin {
 				downloader.setContext(cordova.getActivity());
 				try {
 					String result = downloader.downloadFile(url, "/data/data/"+cordova.getActivity().getPackageName()+"/files/n22/download/", filename);
-//					String result = downloader.downloadFile(url, Environment.getExternalStorageDirectory()+"/dadongfang/download/", filename);
 					if(result.equals(FileDownLoader.RETURNSUCCESS)){
 						System.out.println("下载完成");
 						android.os.Message message = android.os.Message.obtain();
@@ -133,11 +188,24 @@ public class Download extends CordovaPlugin {
 			String action = intent.getAction();
 			if (action.equals("SYS_UPDATE")) {
 				int progress = intent.getExtras().getInt("progress");
-				Toast.makeText(cordova.getActivity(), "更新完成="+progress, Toast.LENGTH_SHORT).show();
+				pBar.setProgress(progress);
+//				Toast.makeText(cordova.getActivity(), "更新完成="+progress, Toast.LENGTH_SHORT).show();
 //				pBar.setProgress(progress);
 //				hint.setText("正在更新"+appVersionStr+"版本："+progress+"%");
 //				progressbar.setProgress(progress);
 			}
 		}
 	};
+	
+//	private boolean systemUpdate() {
+//		// /data/data/cn.com.junlong.kdlinssit/files/jl/download/junlong_V1.1.zip
+//		try {//file:data/data/cn.com.junlong.kdlinssit/files/jl/www/web-app/index.html
+//			ZipUtil.commonUnZip(Path.getRootPath()+"download/",Path.getRootPath() + "download/JL.zip",this);
+//			FileUtil.copy(Path.getRootPath() + "download/www/junlong", Path.getRootPath() + "/www/web-app");
+//			return true;
+//		} catch (Exception e) {
+//			System.out.println(e);
+//			return false;
+//		}
+//	}
 }
