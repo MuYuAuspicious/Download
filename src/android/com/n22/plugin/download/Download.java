@@ -137,8 +137,6 @@ public class Download extends CordovaPlugin {
 
     @SuppressWarnings("unused")
 	private void file(Map<String,String> message) {
-//    	Toast.makeText(cordova.getActivity(), "准备开始下载", Toast.LENGTH_LONG).show();
-//		update("http://140.207.91.54:8098/jl_server/downFile.do?isAddSharePath=true&fileName=/data/kmss/resource/app/junlong_V3.75.zip","JL.zip",DOWNLOAD_END);
     	filePath = message.get("filePath");
     	if(message.get("type").equals("zip")){
         	update(message.get("url"),message.get("name")+"."+message.get("type"),DOWNLOAD_END);
